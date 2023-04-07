@@ -1,0 +1,86 @@
+function updateOrderSummary() {
+  const articleName = document.getElementById('article-name').innerText;
+  const quantity = parseInt(document.getElementById('quantity-input').value);
+  const price = parseFloat(document.getElementById('article-price').innerText.replace(/[^0-9.-]+/g, ""));
+  const formattedPrice = price * quantity;
+
+  const orderSummary = document.getElementById('order-summary');
+  const existingSummary = orderSummary.innerText;
+
+  let itemNumber = 1;
+  const existingItem = existingSummary.match(new RegExp(`${articleName} #\\d+`, 'g'));
+  if (existingItem) {
+    const lastItemNumber = parseInt(existingItem[existingItem.length - 1].match(/\d+/));
+    itemNumber = lastItemNumber + 1;
+  }
+
+  const newItemName = `${articleName} #${itemNumber}`;
+  const newItemLine = `${newItemName} x${quantity} $${formattedPrice.toFixed(2)}\n`;
+  const newSummary = `${existingSummary}${newItemLine}`;
+  orderSummary.innerText = newSummary;
+
+  const tableId = document.getElementById('table-id').value;
+
+  // Make an AJAX request to the server to check for an active order
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', `/orders/active/${tableId}`, true);
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const activeOrder = JSON.parse(xhr.responseText);
+
+      if (activeOrder) {
+        // Add the new items to the active order
+        const orderId = activeOrder.order_id;
+
+        const formData = new FormData();
+        formData.append('article_name', articleName);
+        formData.append('quantity', quantity);
+        formData.append('price', price);
+        formData.append('order_id', orderId);
+
+        const xhr2 = new XMLHttpRequest();
+        xhr2.open('POST', '/orders/items', true);
+        xhr2.onload = function() {
+          if (xhr2.status === 200) {
+            console.log('Items added to active order');
+          }
+        };
+        xhr2.send(formData);
+      } else {
+        // Create a new order and add the new items to it
+        const formData = new FormData();
+        formData.append('table_id', tableId);
+
+        const xhr3 = new XMLHttpRequest();
+        xhr3.open('POST', '/orders', true);
+        xhr3.onload = function() {
+          if (xhr3.status === 200) {
+            const newOrder = JSON.parse(xhr3.responseText);
+            const orderId = newOrder.order_id;
+
+            const formData2 = new FormData();
+            formData2.append('article_name', articleName);
+            formData2.append('quantity', quantity);
+            formData2.append('price', price);
+            formData2.append('order_id', orderId);
+
+            const xhr4 = new XMLHttpRequest();
+            xhr4.open('POST', '/orders/items', true);
+            xhr4.onload = function() {
+              if (xhr4.status === 200) {
+                console.log('New order created and items added');
+              }
+            };
+            xhr4.send(formData2);
+          }
+        };
+        xhr3.send(formData);
+      }
+    }
+  };
+  xhr.send();
+}
+
+// .then(data => {
+            //     console.log(data.orderId);
+            // })

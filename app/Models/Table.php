@@ -9,7 +9,7 @@ class Table extends Model
 {
     use HasFactory;
 
-    protected $table = 'order';
+    protected $table = 'table';
     protected $primaryKey = 'table_id';
 
     protected $fillable = [
@@ -17,8 +17,8 @@ class Table extends Model
         'position',
     ];
 
-//    public function orders()
-//    {
-//        return $this->hasMany(Order::class, 'fk_table_id', 'id');
-//    }
+    public function orders()
+  {
+       return $this->hasMany(Order::class, 'fk_table_id', 'table_id');
+   }
 }

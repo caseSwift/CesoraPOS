@@ -38,4 +38,14 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'fk_void_user_id', 'id');
     }
+    public function articleOrders()
+    {
+        return $this->hasMany(ArticleOrder::class, 'fk_order_id');
+    }
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
+
 }

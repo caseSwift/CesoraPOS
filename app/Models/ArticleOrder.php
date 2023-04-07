@@ -21,6 +21,7 @@ class ArticleOrder extends Model
         'voided_at',
         'fk_void_user_id',
         'fk_user_id',
+        'item_number'
     ];
 
     public function article()

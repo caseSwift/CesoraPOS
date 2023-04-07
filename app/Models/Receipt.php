@@ -19,4 +19,6 @@ class Receipt extends Model
         'finalized_at',
         'fk_void_user_id'
     ];
+
+
 }

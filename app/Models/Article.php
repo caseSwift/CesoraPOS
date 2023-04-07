@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Article extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'name',
@@ -16,7 +17,7 @@ class Article extends Model
         'active'
     ];
 
-    protected $primaryKey = 'article_id';
+
     protected $table = 'article';
 
     public $timestamps = false;
@@ -24,4 +25,9 @@ class Article extends Model
     {
         return $query->where('type', $type);
     }
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id');
+    }
+
 }
