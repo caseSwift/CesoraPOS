@@ -1,5 +1,7 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 @vite('C:\Users\veljk\OneDrive\Desktop\cesora1\resources\css\app.css')
 <div id="modal" class="modal">
     <div class="modal-content">
@@ -23,13 +25,15 @@
         <h1 class="text-2xl font-bold">Restaurant POS</h1>
         <nav>
             <ul class="flex space-x-4">
-                <li><a href="#" class="hover:text-gray-300">Daily profit</a></li>
+                <li><a href="#" class="hover:text-gray-300" id="user-earnings-link">User Earnings</a></li>
+
+                <li><a href="#" class="hover:text-gray-300" id="daily-profit-link">Daily profit</a></li>
                 <li><a onclick="checkOut()" href="#" class="hover:text-gray-300">Check out</a></li>
                 <li><a href="#" class="hover:text-gray-300">Menu</a></li>
                 <li><a href="#" class="hover:text-gray-300">Orders</a></li>
                 <li><a href="#" class="hover:text-gray-300">Settings</a></li>
                 @if(auth()->check() && auth()->user()->hasRole('administrator'))
-                    <li><a href="#" class="hover:text-gray-300">Administrator</a></li>
+                    <li><a href="{{ route('administrator') }}" class="hover:text-gray-300">Administrator</a></li>
                 @endif
                 <li><a href="#" class="hover:text-gray-300"><form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -82,6 +86,7 @@
 </div>
 
 <script>
+
     const url = window.location.href;
     let match = url.match(/table\/(\d+)/);
     let tableId = match[1];
@@ -214,6 +219,38 @@
         }
     }
     // Event listeners
+    //user earnings
+    document.getElementById('user-earnings-link').addEventListener('click', function() {
+        // Get the user ID from the current user
+        var userId = '{{ Auth::user()->id }}';
+
+        // Call the user earnings route and display the total
+        axios.get('/user-earnings/' + userId)
+            .then(function(response) {
+                var total = response.data.total;
+                alert('Your earnings for today: $' + total.toFixed(2));
+            })
+            .catch(function(error) {
+                console.error(error);
+            });
+    });
+    //end of user earnings
+    // Daily profit
+    document.getElementById('daily-profit-link').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent the link from redirecting to another page
+
+        $.ajax({
+            url: '/daily-profit',
+            type: 'GET',
+            success: function(response) {
+                alert('Total profit: ' + response.total);
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    });
+    // end of daily profit
     close.addEventListener('click', closeModal);
     plusBtn.addEventListener('click', () => increaseQuantity());
     minusBtn.addEventListener('click', () => decreaseQuantity());

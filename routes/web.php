@@ -12,6 +12,8 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\VoidOrdersController;
+use App\Http\Controllers\SalesReportController;
 
 
 
@@ -61,10 +63,10 @@ Route::post('/tables/{table}/orders', [OrderController::class, 'placeOrder'])->n
 
 Route::get('/assign-role-to-user', [AssignRoleController::class, 'assignRoleToUser']);
 
-Route::get('/administrator', [AdminController::class, 'index'])->middleware(['auth', 'role:administrator']);
+//Route::get('/administrator', [AdminController::class, 'index'])->middleware(['auth', 'role:administrator'])->name('administrator');
 
 Route::middleware(['auth', 'role:administrator'])->group(function () {
-    Route::get('/administrator', [AdminController::class, 'loadView']);
+    Route::get('/administrator', [AdminController::class, 'loadView'])->name('administrator');
 });
 
 Route::get('/articles/{type}', 'ArticleController@index')->name('articles.index');
@@ -106,7 +108,28 @@ Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->name(
 Route::get('/audit-trail', [AuditController::class,'index'])->name('audit.index');
 
 Route::get('/daily-profit', [OrderController::class, 'getDailyProfit'])->name('daily-profit');
+Route::get('/user-earnings/{userId}', [OrderController::class, 'getUserEarningsForToday'])->name('user-earnings');
 
 
+
+Route::get('/void-orders', [VoidOrdersController::class, 'showVoidOrdersForm'])
+    ->middleware(['auth', 'role:administrator'])
+    ->name('void-orders');
+
+Route::post('/void-orders', [VoidOrdersController::class, 'showVoidOrders'])
+    ->middleware(['auth', 'role:administrator'])
+    ->name('void-orders');
+
+Route::post('/void-order/{id}', [VoidOrdersController::class, 'voidOrder'])
+    ->middleware(['auth', 'role:administrator'])
+    ->name('void-order');
+
+
+Route::get('/sales-report', [SalesReportController::class,'index'])->name('sales-report');
+
+Route::post('/sales-report/results', [SalesReportController::class,'getSalesReport'])->name('sales-report-results');
+
+
+Route::get('/populate-tables', [TableController::class, 'populateTables']);
 
 

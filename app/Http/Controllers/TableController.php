@@ -13,27 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TableController extends Controller
 {
-//    public function index()
-//    {
-//        $tables = Table::all();
-//
-//        return view('tables', [
-//            'tables' => $tables,
-//        ]);
-//    }
 
-//    public function show($id)
-//    {
-//        $table = Table::find($id);
-//
-//        if (!$table) {
-//            return response()->view('errors.404', [], 404);
-//        }
-//
-//        return view('table', [
-//            'table' => $table,
-//        ]);
-//    }
     public function showTable($id)
     {
         $table = Table::find($id);
@@ -59,50 +39,23 @@ class TableController extends Controller
         ]);
     }
 
-//    public function showTable($id)
-//    {
-//        $table = Table::find($id);
-//
-//        if (!$table) {
-//            return response()->view('errors.404', [], 404);
-//        }
-//
-//        $articles = Article::all();
-//        $type = request('type');
-//        if ($type) {
-//            $articles = (new Article())->scopeOfType($type)->get();
-//
-//        }
-//
-//        return view('table', [
-//            'table' => $table,
-//            'articles' => $articles,
-//            'type' => $type,
-//        ]);
-//    }
+    public function populateTables()
+    {
+        $startTableId = 2;
+        $endTableId = 50;
+        $tableName = 'table';
+        $startPosition = 2;
+        $endPosition = 50;
 
-//    public function placeOrder(Request $request, $table_id)
-//    {
-//        $this->validate($request, [
-//            'article_id' => 'required|exists:articles,id',
-//            'quantity' => 'required|integer|min:1',
-//        ]);
-//
-//        $user = Auth::user();
-//        $table = Table::findOrFail($table_id);
-//
-//        $order = $user->orders()->create([
-//            'table_id' => $table_id,
-//            'finalized_at' => null,
-//        ]);
-//
-//        $article_id = $request->input('article_id');
-//        $quantity = $request->input('quantity');
-//        $order->articles()->attach($article_id, ['quantity' => $quantity]);
-//
-//        return response()->json([
-//            'success' => true,
-//            'order' => $order,
-//        ]);
-//    }
+        $table = new Table();
+
+        for ($i = $startTableId; $i <= $endTableId; $i++) {
+            $table->name = $tableName . $i;
+            $table->position = $startPosition + $i - $startTableId;
+            $table->save();
+        }
+
+        return 'Tables have been populated successfully.';
+    }
+
 }

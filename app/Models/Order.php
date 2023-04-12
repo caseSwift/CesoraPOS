@@ -31,7 +31,7 @@ class Order extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'fk_user_id', 'id');
+        return $this->belongsTo(User::class);
     }
 
     public function voidUser()
@@ -47,5 +47,8 @@ class Order extends Model
     {
         return $this->hasMany(Article::class);
     }
-
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

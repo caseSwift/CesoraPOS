@@ -24,7 +24,7 @@
                 <li><a href="#" class="hover:text-gray-300">Orders</a></li>
                 <li><a href="#" class="hover:text-gray-300">Settings</a></li>
                 @if(auth()->check() && auth()->user()->hasRole('administrator'))
-                    <li><a href="#" class="hover:text-gray-300">Administrator</a></li>
+                    <li><a  href="{{ route('administrator') }}" class="hover:text-gray-300">Administrator</a></li>
                 @endif
                 <li><a href="#" class="hover:text-gray-300"><form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -43,7 +43,7 @@
 <div class="grid grid-cols-5 gap-4  mt-4">
 
 
-        @for ($i = 1; $i <= 30; $i++)
+        @for ($i = 1; $i <= 50; $i++)
             <a class="bg-gray-200 hover:bg-gray-300 rounded-lg p-4" href="{{ route('table.show', ['id' => $i]) }}">
                 <button  >Table {{ $i }}</button>
             </a>

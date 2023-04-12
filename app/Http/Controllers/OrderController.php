@@ -9,24 +9,21 @@ use App\Models\ArticleOrder;
 use App\Models\Article;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\User;
 
 
 
 class OrderController extends Controller
 {
-//    public function store(Request $request, $id)
-//    {
-//        $table = Table::findOrFail($id);
-//
-//        $order = new Order();
-//        $order->fk_table_id = $table->id;
-//        $order->total = $request->input('total');
-//        // add other fields as needed
-//        $order->save();
-//
-//        // redirect to the table view
-//        return redirect()->route('table.show', ['id' => $table->id]);
-//    }
+    public function index($table_number)
+    {
+        $orders = Order::where('fk_table_id', $table_number)
+            ->where('fk_user_id', auth()->id())
+            ->get();
+
+        return response()->json(['orders' => $orders]);
+    }
+
     public function placeOrder($tableId, Request $request)
     {
         // validate form data
@@ -62,6 +59,7 @@ class OrderController extends Controller
         $activeOrder = Order::where('fk_table_id', $tableId)
             ->whereNull('finalized_at')
             ->whereNull('voided_at')
+            ->where('fk_user_id', auth()->user()->id) // Add user ID condition here
             ->first();
 
         if ($activeOrder) {
@@ -77,6 +75,7 @@ class OrderController extends Controller
         } else{
             $newOrder = new Order();
             $newOrder->fk_table_id = $tableId;
+            $newOrder->fk_user_id = auth()->user()->id; // Set the user ID here
             $newOrder->save();
 
             $orderItem = new ArticleOrder();
@@ -87,7 +86,6 @@ class OrderController extends Controller
             $orderItem->save();
             return response()->json(['orderId' => $newOrder->order_id]);
         }
-
     }
 
     public function storeOrderItem(Request $request)
@@ -110,9 +108,13 @@ class OrderController extends Controller
 
         // ...
 
+        // get the currently authenticated user's ID
+        $userId = Auth::user()->id;
+
         // create a new order in the database
         $orderModel = new Order();
         $orderModel->fill($order);
+        $orderModel->fk_user_id = $userId; // set the user ID
         $orderModel->save();
 
         return response()->json(['orderId' => $orderModel->id]);
@@ -129,6 +131,7 @@ class OrderController extends Controller
         $tableId = $request->input('table_id');
 
         $activeOrder = Order::where('fk_table_id', $tableId)
+            ->where('fk_user_id', auth()->id())
             ->whereNull('finalized_at')
             ->whereNull('voided_at')
             ->first();
@@ -149,13 +152,14 @@ class OrderController extends Controller
     public function checkout($id)
     {
         $table = Table::findOrFail($id);
-        $order = $table->orders()->whereNull('finalized_at')->first();
+        $order = $table->orders()->whereNull('finalized_at')->where('fk_user_id', auth()->id())->first();
 
         if ($order) {
             $order->finalized_at = Carbon::now();
             $order->save();
 
-            $totalPrice = ArticleOrder::where('fk_order_id', $order->order_id)->sum('price');
+            $totalPrice = ArticleOrder::where('fk_order_id', $order->order_id)
+                ->sum(DB::raw('quantity * price'));
 
             return response()->json([
                 'success' => true,
@@ -171,16 +175,42 @@ class OrderController extends Controller
         $start = Carbon::now()->subHours(20); // Set the start time to 4am 24 hours ago
         $end = Carbon::now()->addHours(4); // Set the end time to 4am today
 
+
         $orders = DB::table('order')
             ->whereBetween('created_at', [$start, $end])
             ->get();
 
         $total = 0;
         foreach ($orders as $order) {
-            $totalPrice = ArticleOrder::where('fk_order_id', $order->order_id)->sum('price');
+            $totalPrice = ArticleOrder::where('fk_order_id', $order->order_id)->sum(DB::raw('price * quantity'));
+
             $total += $totalPrice;
         }
 
         return response()->json(['total' => $total]);
     }
+    public function getUserEarningsForToday($userId)
+    {
+        $start = Carbon::now()->subHours(17); // Set the start time to 7am this day
+        $end = Carbon::now()->addHours(7); // Set the end time to 7am next day
+
+        $orders = Order::where('fk_user_id', $userId)
+            ->whereBetween('created_at', [$start, $end])
+            ->get();
+
+        $total = 0;
+        foreach ($orders as $order) {
+            $totalPrice = ArticleOrder::where('fk_order_id', $order->order_id)->sum(DB::raw('price * quantity'));
+
+            $total += $totalPrice;
+        }
+
+        $user = User::findOrFail($userId);
+
+        return response()->json([
+            'name' => $user->name,
+            'total' => $total
+        ]);
+    }
+
 }
